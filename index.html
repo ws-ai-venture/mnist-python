@@ -15,11 +15,10 @@
 </head>
 
 <body>
-
     <div class="container">
       <div class="row">
         <div id="canvas-div" class="col-md-4 col-md-offset-2 col-xs-12">
-          <canvas id="canvas" width="364" height="364"></canvas>
+          <canvas id="canvas" width="336" height="336"></canvas>
         </div>
         <div class="col-md-4 col-xs-12">
             <h2 id="header">MNIST Draw</h2>
@@ -35,8 +34,12 @@
         </div>
       </div>
     </div>
+    <div style="display:none" id="scaled-canvas-div">
+      <canvas id="scaled-canvas" width="28" height="28"></canvas>
+    </div>
 
     <!-- Javascript -->
+    <script src="https://apis.google.com/js/client.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
