@@ -25,7 +25,7 @@
             <p><small>Draw a single digit (0-9) in the box to the left, then click Predict.</small></p>
             <p><small>A machine learning model trained against the MNIST character dataset will classify the image. Scores for each classification label are plotted below.</small></p>
             <div class="btn-group" role="group" aria-label="...">
-                <button type="button" class="btn btn-primary" id="predict">Predict <i id="status"></i></button>
+                <button type="button" onclick="predict()" class="btn btn-primary" id="predict">Predict <i id="status"></i></button>
                 <button type="button" class="btn btn-default" id="clear-canvas">Clear</button>
             </div>
             <div>
@@ -44,6 +44,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="js/fabric.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.12.5"> </script>
     <script src="js/custom.js"></script>
 
 </body>
