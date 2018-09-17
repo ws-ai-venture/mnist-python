@@ -1,6 +1,6 @@
 var model;
 async function loadModel (){
-    model = await tf.loadModel('model.json');
+    model = await tf.loadModel('https://zackakil.github.io/mnist-draw/model.json');
 }
 loadModel()
 
