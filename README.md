@@ -2,7 +2,7 @@
 MODDED TO USE TENSORFLOW.JS
 ```
 
-## [![Tensorflow.js](https://js.tensorflow.org/images/TF_JS_lockup.png)](https://js.tensorflow.org/)
+## [![Tensorflow.js](tf.js_mnist.png)](https://js.tensorflow.org/)
 
 # mnist-draw
 This repository contains a single page website that enables users to hand-draw and classify digits (0-9) using machine learning. A machine learning model trained against the MNIST dataset is used for classification. 
