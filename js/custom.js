@@ -1,10 +1,15 @@
 var model;
-async function loadModel (){
-    model = await tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then(() => {
+// async function loadModel (){
+//     model = await tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then(() => {
+//         document.getElementById('model-load').style.display = 'none';
+//     });
+// }
+// loadModel()
+
+tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then((m) => {
+        model = m;
         document.getElementById('model-load').style.display = 'none';
-    });
-}
-loadModel()
+});
 
 function processImage(canvas) {
   ctx = canvas.getContext('2d');
