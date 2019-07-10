@@ -1,15 +1,14 @@
 var model;
-// async function loadModel (){
-//     model = await tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then(() => {
-//         document.getElementById('model-load').style.display = 'none';
-//     });
-// }
-// loadModel()
 
-tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then((m) => {
-        model = m;
-        document.getElementById('model-load').style.display = 'none';
-});
+(async () => {
+  model = await tf.loadLayersModel('model/model.json')
+  document.getElementById('model-load').style.display = 'none';
+})();
+
+//tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then((m) => {
+//        model = m;
+//        document.getElementById('model-load').style.display = 'none';
+//});
 
 function processImage(canvas) {
   ctx = canvas.getContext('2d');
@@ -52,17 +51,17 @@ var tensor_pixels;
 // Predict button callback
 // $("#predict").click(function(){  
   function predict(){
-
   // Change status indicator
   $("#status").removeClass().toggleClass("fa fa-spinner fa-spin");
 
   pixels = processImage(canvas);
-  tensor_pixels = tf.scalar(1).sub(tf.fromPixels(pixels, 1).toFloat().div(255))
-  var prediction = model.predict( tensor_pixels.expandDims() ).dataSync()
+  tensor_pixels = tf.scalar(1).sub(tf.browser.fromPixels(pixels, 1).toFloat().div(255))
+  //var prediction = model.predict(tensor_pixels.expandDims()).dataSync()
+  linear_pixels = tf.reshape(tensor_pixels, [1, 28*28])
+  var prediction = model.predict(linear_pixels).dataSync()
   $("#status").removeClass().toggleClass("fa fa-check");
   $('#svg-chart').show();
   updateChart(prediction);
-
 };
 
 // Iniitialize d3 bar chart
