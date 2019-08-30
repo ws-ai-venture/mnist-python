@@ -1,29 +1,60 @@
 body {
-	margin-top: 100px;
+  margin-top: 50px;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+.content {
+  display: flex;
+  justify-content: space-between;
+}
+
+#drawing-space {
+  padding: 10px;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+#instructions{
+  padding: 5px;
+  max-width: 500px;
 }
 
 #canvas {
-	border: 1px solid #aaaaaa;
+  border: 1px solid #aaaaaa;
 }
 
-#canvas-div {
-	margin-bottom: 20px;
-}
-
-#header {
-	margin-top: 0px;
+button {
+  background-color:#44c767;
+  -moz-border-radius:26px;
+  -webkit-border-radius:26px;
+  border-radius:26px;
+  border:1px solid #18ab29;
+  display:inline-block;
+  cursor:pointer;
+  color:#ffffff;
+  font-family:Arial;
+  font-size:17px;
+  padding:6px 17px;
+  text-decoration:none;
+  text-shadow:0px 1px 0px #2f6627;
 }
 
 #svg-chart {
-	margin-top: 15px;
+  margin-top: 15px;
 }
 
 .bar { 
-	fill: steelblue; 
+  fill: steelblue; 
 }
 
 .bar:hover {
-    fill: orangered ;
+  fill: orangered ;
 }
 
 .axis text {

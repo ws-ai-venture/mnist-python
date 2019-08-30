@@ -46,7 +46,7 @@ function onMouseMove() {
 
 canvas.on('mouse:up',   () => {drawing = false; predict();});
 canvas.on('mouse:down', () => {drawing = true;});
-canvas.on('mouse:move', onMouseMove();
+canvas.on('mouse:move', onMouseMove);
 
 // Clear button callback
 $("#clear-canvas").click(function(){ 
