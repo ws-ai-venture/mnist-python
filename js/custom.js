@@ -1,28 +1,24 @@
 var model;
+var firstPrediction = true;
 
+// start by asymchronously loading our model and running a dummy 
+// prediction to prime the pump.
 (async () => {
   model = await tf.loadLayersModel('model/model.json')
   document.getElementById('model-load').style.display = 'none';
+  predict();
 })();
 
-//tf.loadModel('https://zackakil.github.io/mnist-draw/model.json').then((m) => {
-//        model = m;
-//        document.getElementById('model-load').style.display = 'none';
-//});
-
 function processImage(canvas) {
+  // Convert on-screen image to something we can feed into our model.
   ctx = canvas.getContext('2d');
-  // scale image to 28x28
   const ctxScaled = document.getElementById('scaled-canvas').getContext('2d')
   ctxScaled.save();
   ctxScaled.clearRect(0, 0, ctxScaled.canvas.height, ctxScaled.canvas.width);
   ctxScaled.scale(28.0 / ctx.canvas.width, 28.0 / ctx.canvas.height)
   ctxScaled.drawImage(document.getElementById('canvas'), 0, 0)
-  
   const {data} = ctxScaled.getImageData(0, 0, 28, 28)
-
   ctxScaled.restore();
-  //console.log(pixels);
   return document.getElementById('scaled-canvas')
 }
 
@@ -34,10 +30,23 @@ canvas.freeDrawingBrush.color = "#000000";
 canvas.backgroundColor = "#ffffff";
 canvas.renderAll();
 
-canvas.on('mouse:up', predict);
+// We don't want to do a prediction on every mouse move so we group
+// the predictions according to the tuning variable movesPerPrediction.
+var mouseMoveCount = 0;
+var movesPerPrediction = 50;
+var drawing = false;
 
+function onMouseMove() {
+  if (drawing && mouseMoveCount++ > movesPerPrediction) {
+    canvas.freeDrawingBrush._finalizeAndAddPath();
+    (async () => { predict(); })();
+    mouseMoveCount = 0;
+  }
+}
 
-// canvas.addEventListener("mouse:up", );
+canvas.on('mouse:up',   () => {drawing = false; predict();});
+canvas.on('mouse:down', () => {drawing = true;});
+canvas.on('mouse:move', onMouseMove();
 
 // Clear button callback
 $("#clear-canvas").click(function(){ 
@@ -47,24 +56,29 @@ $("#clear-canvas").click(function(){
   updateChart(zeros);
   $("#status").removeClass();
 });
-var tensor_pixels;
-// Predict button callback
-// $("#predict").click(function(){  
-  function predict(){
+
+var tensor_pixels = null;
+
+function predict(){
   // Change status indicator
-  $("#status").removeClass().toggleClass("fa fa-spinner fa-spin");
+  if (!firstPrediction) {
+    $("#status").removeClass().toggleClass("fa fa-spinner fa-spin");
+  }
 
   pixels = processImage(canvas);
   tensor_pixels = tf.scalar(1).sub(tf.browser.fromPixels(pixels, 1).toFloat().div(255))
-  //var prediction = model.predict(tensor_pixels.expandDims()).dataSync()
   linear_pixels = tf.reshape(tensor_pixels, [1, 28*28])
   var prediction = model.predict(linear_pixels).dataSync()
-  $("#status").removeClass().toggleClass("fa fa-check");
-  $('#svg-chart').show();
-  updateChart(prediction);
+  if (firstPrediction) {
+    firstPrediction = false;
+  } else {
+    $("#status").removeClass().toggleClass("fa fa-check");
+    $('#svg-chart').show();
+    updateChart(prediction);
+  }
 };
 
-// Iniitialize d3 bar chart
+// Initialize d3 bar chart
 $('#svg-chart').hide();
 var labels = ['0','1','2','3','4','5','6','7','8','9'];
 var zeros = [0,0,0,0,0,0,0,0,0,0,0];
@@ -76,36 +90,36 @@ var margin = {top: 0, right: 0, bottom: 20, left: 0},
 var svg = d3.select("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
-  .append("g")
+    .append("g")
     .attr("transform", 
-          "translate(" + margin.left + "," + margin.top + ")");
+       "translate(" + margin.left + "," + margin.top + ")");
 
 var x = d3.scale.ordinal()
-    .rangeRoundBands([0, width], .1)
-    .domain(labels);
+          .rangeRoundBands([0, width], .1)
+          .domain(labels);
     
 var y = d3.scale.linear()
           .range([height, 0])
           .domain([0,1]);  
 
 var xAxis = d3.svg.axis()
-    .scale(x)
-    .orient("bottom")
-    .tickSize(0);
+              .scale(x)
+              .orient("bottom")
+              .tickSize(0);
 
 svg.selectAll(".bar")
-    .data(zeros)
-  .enter().append("rect")
-    .attr("class", "bar")
-    .attr("x", function(d, i) { return x(i); })
-    .attr("width", x.rangeBand())
-    .attr("y", function(d) { return y(d); })
-    .attr("height", function(d) { return height - y(d); });
+   .data(zeros)
+   .enter().append("rect")
+   .attr("class", "bar")
+   .attr("x", function(d, i) { return x(i); })
+   .attr("width", x.rangeBand())
+   .attr("y", function(d) { return y(d); })
+   .attr("height", function(d) { return height - y(d); });
 
 svg.append("g")
-    .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
-    .call(xAxis);
+   .attr("class", "x axis")
+   .attr("transform", "translate(0," + height + ")")
+   .call(xAxis);
 
 // Update chart data
 function updateChart(d) {
@@ -116,8 +130,3 @@ function updateChart(d) {
     .attr("y", function(d) { return y(d); })
     .attr("height", function(d) { return height - y(d); });
 }
-
-var testDigit = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3294117748737335, 0.7254902124404907, 0.6235294342041016, 0.5921568870544434, 0.2352941334247589, 0.1411764770746231, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8705883026123047, 0.9960784912109375, 0.9960784912109375, 0.9960784912109375, 0.9960784912109375, 0.9450981020927429, 0.7764706611633301, 0.7764706611633301, 0.7764706611633301, 0.7764706611633301, 0.7764706611633301, 0.7764706611633301, 0.7764706611633301, 0.7764706611633301, 0.6666666865348816, 0.2039215862751007, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.26274511218070984, 0.44705885648727417, 0.2823529541492462, 0.44705885648727417, 0.6392157077789307, 0.8901961445808411, 0.9960784912109375, 0.8823530077934265, 0.9960784912109375, 0.9960784912109375, 0.9960784912109375, 0.9803922176361084, 0.8980392813682556, 0.9960784912109375, 0.9960784912109375, 0.5490196347236633, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06666667014360428, 0.25882354378700256, 0.05490196496248245, 0.26274511218070984, 0.26274511218070984, 0.26274511218070984, 0.23137256503105164, 0.08235294371843338, 0.9254902601242065, 0.9960784912109375, 0.41568630933761597, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.32549020648002625, 0.9921569228172302, 0.8196079134941101, 0.07058823853731155, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.08627451211214066, 0.9137255549430847, 1.0, 0.32549020648002625, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5058823823928833, 0.9960784912109375, 0.9333333969116211, 0.1725490242242813, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.23137256503105164, 0.9764706492424011, 0.9960784912109375, 0.24313727021217346, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5215686559677124, 0.9960784912109375, 0.7333333492279053, 0.019607843831181526, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.03529411926865578, 0.803921639919281, 0.9725490808486938, 0.22745099663734436, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4941176772117615, 0.9960784912109375, 0.7137255072593689, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.29411765933036804, 0.9843137860298157, 0.9411765336990356, 0.22352942824363708, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.07450980693101883, 0.8666667342185974, 0.9960784912109375, 0.6509804129600525, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.011764707043766975, 0.7960785031318665, 0.9960784912109375, 0.8588235974311829, 0.13725490868091583, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.14901961386203766, 0.9960784912109375, 0.9960784912109375, 0.3019607961177826, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.12156863510608673, 0.8784314393997192, 0.9960784912109375, 0.45098042488098145, 0.003921568859368563, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5215686559677124, 0.9960784912109375, 0.9960784912109375, 0.2039215862751007, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2392157018184662, 0.9490196704864502, 0.9960784912109375, 0.9960784912109375, 0.2039215862751007, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4745098352432251, 0.9960784912109375, 0.9960784912109375, 0.8588235974311829, 0.1568627506494522, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4745098352432251, 0.9960784912109375, 0.8117647767066956, 0.07058823853731155, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
-
-
-// window.setInterval(predict, 1000);
