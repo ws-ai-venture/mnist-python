@@ -33,7 +33,7 @@ canvas.renderAll();
 // We don't want to do a prediction on every mouse move so we group
 // the predictions according to the tuning variable movesPerPrediction.
 var mouseMoveCount = 0;
-var movesPerPrediction = 50;
+var movesPerPrediction = 25;
 var drawing = false;
 
 function onMouseMove() {
