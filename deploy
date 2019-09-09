@@ -1,0 +1,2 @@
+set -x
+gcloud beta run deploy --image gcr.io/mco-cloud-run/mco-mnist-draw

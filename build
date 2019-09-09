@@ -1,0 +1,2 @@
+set -x
+gcloud builds submit --tag gcr.io/mco-cloud-run/mco-mnist-draw
