@@ -19,8 +19,9 @@
 }
 
 .header {
-  padding-left: 50px;
-  padding-right: 50px;
+  text-align: center;
+  padding-left: 30x;
+  padding-right: 30px;
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -28,7 +29,6 @@
 }
 
 .footer {
-  position: fixed;
   bottom: 20px;
   width: 100%;
   text-align: center;
@@ -40,7 +40,7 @@
 }
 
 .instructions{
-  padding: 25px;
+  padding-left: 25px;
   font-size: 20px;
 }
 
