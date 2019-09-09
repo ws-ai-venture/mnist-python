@@ -26,11 +26,14 @@ p {
   margin: 10px;
 }
 
-#instructions{
+.instructions{
   padding: 5px;
-  max-width: 600px;
   font-family:Arial;
   font-size:16px;
+}
+
+.panel {
+  max-width: 600px;
 }
 
 #canvas {

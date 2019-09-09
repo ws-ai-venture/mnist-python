@@ -10,6 +10,19 @@
 </head>
 
 <body>
+  <img height="75" src="tf.js_mnist.png">
+
+  <p class="instructions">
+    Draw a digit by hand and have it classified in real time as your draw by a machine learning model trained against
+    the <a href="https://en.wikipedia.org/wiki/MNIST_database">MNIST</a> dataset.
+
+    The model used for this page (a convolutional neural network (CNN) built using Keras/TensorFlow on a
+    Google Tensor Processing Unit) is explained in depth and is available for you to build for
+    yourself at <a href="https://bit.ly/mco-mnist-lab">bit.ly/mco-mnist-lab</a>).
+    
+    Made with <span style="color:red; font-size: 20px">&hearts;</span> by <a href="mco.dev">Marc</a>.
+  </p>
+  <br>
   <div class="container">
     <div class="content">
       <div id="drawing-space">
@@ -23,8 +36,7 @@ Loading model...
         </div>
         <canvas id="canvas" width="336" height="336"></canvas>
       </div>
-      <div id="instructions">
-        <h2>MNIST Draw</h2>
+      <div class="instructions panel">
         <p>Draw a single digit (0-9) in the box to the left. A machine learning model trained against the MNIST character dataset will classify the image as you draw. Scores for each classification label are plotted below.</p>
         <button id="clear-canvas" onclick="this.blur()">Clear</button>
         <div>

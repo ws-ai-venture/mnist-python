@@ -1,22 +1,21 @@
-```
-MODDED TO USE TENSORFLOW.JS
-```
 
 ## [![Tensorflow.js](tf.js_mnist.png)](https://js.tensorflow.org/)
 
 ### [Try the Live Demo](https://bit.ly/mco-mnist-draw)
 
 # mnist-draw
-This repository contains a single page website that enables users to hand-draw and classify digits (0-9) using machine learning. A machine learning model trained against the MNIST dataset is used for classification. 
+This repository contains a single page website that enables users to draw digits (0-9) by hand and 
+have the digits classified in real time as they are drawn by a machine learning model trained against
+the [MNIST](https://en.wikipedia.org/wiki/MNIST_database) dataset.
 
 # Setup 
-Python 3.5+ is required for compatability with all required modules
+Python 3.5+ is required for compatibility with all required modules
 
 ```bash
 # Clone this repository
-git clone https://github.com/rhammell/mnist-draw.git
+git clone https://github.com/marcacohen/mnist-draw.git
 
-# Go into the repository
+# Change to the repo root directory
 cd mnist-draw
 
 # Install required modules
@@ -26,12 +25,13 @@ pip install -r requirements.txt
 # Usage
 To launch the website, begin by starting a Python server from the repository folder:
 ```bash
-# Start Python server
+# Start Python server (use Python 3)
 python -m http.server --cgi 8000
 ```
-Then open a browser and navigate to `http://localhost:8000/index.html` to view it. 
+Then open a browser and navigate to `http://localhost:8000/`. 
 
-An example of the website's interface is shown below. Users are guided to draw a digit (0-9) on the empty canvas and then hit the 'Predict' button to process their drawing. Allow up to 1 minute for the processing to complete. Any errors during processing will be indicated with a warning icon and printed to the console. 
+An example of the website's interface is shown below. Users are guided to draw a digit (0-9) on the empty
+canvas and watch the page try to classify your digit as you draw.
 
 Results are displayed as a bar graph where each classification label recieves a score between 0.0 and 1.0 from the machine learning model. Clear the canvas with the 'Clear' button to draw and process other digits.  
 
@@ -41,11 +41,6 @@ Interface example:
 </p>
 
 ## Machine Learning Model
-Python scripts related to defining, training, and implementing the machine learning model are contained within the `cgi-bin` folder. 
-
-A convolutional neural network (CNN) is defined within the `model.py` module using the [TFLearn](http://tflearn.org/) library. This model is configured for MNIST data inputs. 
-
-The defined CNN can be trained against the MNIST dataset by running the `train.py` script. This script will automaticallly load the MNIST dataset from the TFLearn library to use as input, and the trained model's parameter files are saved into the `models` directory. Pre-trained model files are made available in this directory already.
-
-The `mnist.py` script implements this trained model against the user's hand-drawn input. When the 'Predict' button is clicked, the contents of the drawing canvas are posted to this script as data url, and a JSON object containing the model's predictions is returned. 
-
+The model I'm using for this page a convolutional neural network (CNN) built using Keras/TensorFlow on a
+Google Tensor Processing Unit (TPU).
+The model is explained in depth and is available for you to build yourself [here](bit.ly/mco-mnist-lab).
