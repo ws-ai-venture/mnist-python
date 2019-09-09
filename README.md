@@ -44,3 +44,10 @@ Interface example:
 The model I'm using for this page a convolutional neural network (CNN) built using Keras/TensorFlow on a
 Google Tensor Processing Unit (TPU).
 The model is explained in depth and is available for you to build yourself [here](bit.ly/mco-mnist-lab).
+
+## Acknowledgements
+
+Thanks to rhammell for the original Python version and to zackakil for adding support for Tensorflow.js.
+In this version I added predicting while you draw, deployed the example UI on Cloud Run (bit.ly/mco-mnist-draw),
+and deployed a Colab notebook (bit.ly/mco-mnist-lab) so you can build your own version of this model, 
+with the UI widget integrated right into the notebook.
