@@ -37,7 +37,7 @@ Results are displayed as a bar graph where each classification label recieves a 
 
 Interface example: 
 <p>
-<img src="http://i.imgur.com/fmIa0e5.gif" width="600">
+  <img src="https://mco.dev/img/mnist-draw.gif" width="600">
 </p>
 
 ## Machine Learning Model
