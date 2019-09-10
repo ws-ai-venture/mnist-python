@@ -43,7 +43,7 @@ Interface example:
 ## Machine Learning Model
 The model I'm using for this page a convolutional neural network (CNN) built using Keras/TensorFlow on a
 Google Tensor Processing Unit (TPU).
-The model is explained in depth and is available for you to build yourself [here](bit.ly/mco-mnist-lab).
+The model is explained in depth and is available for you to build yourself [here](https://bit.ly/mco-mnist-lab).
 
 ## Acknowledgements
 
