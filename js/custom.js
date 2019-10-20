@@ -4,7 +4,7 @@ var firstPrediction = true;
 // start by asymchronously loading our model and running a dummy 
 // prediction to prime the pump.
 (async () => {
-  model = await tf.loadLayersModel('model/model.json', strict=false)
+  model = await tf.loadLayersModel('model/model.json')
   document.getElementById('model-load').style.display = 'none';
   predict();
 })();
