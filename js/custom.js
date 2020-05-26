@@ -68,7 +68,8 @@ function predict(){
   pixels = processImage(canvas);
   tensor_pixels = tf.scalar(1).sub(tf.browser.fromPixels(pixels, 1).toFloat().div(255))
   //linear_pixels = tf.reshape(tensor_pixels, [1, 28*28])
-  var prediction = model.predict(tensor_pixels).dataSync()
+  pixels = tf.reshape(tensor_pixels, [1, 28, 28, 1])
+  var prediction = model.predict(pixels).dataSync()
   if (firstPrediction) {
     firstPrediction = false;
   } else {
