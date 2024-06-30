@@ -52,53 +52,113 @@
         );
       }
 
+      function displayImageData(imageData) {
+        const newDiv = document.createElement("div");
+        newDiv.style.border = "1px solid black";
+        newDiv.style.display = "inline-block";
+        newDiv.style.margin = "10px";
+
+        const label = document.createElement("p");
+        label.innerText = "imageData";
+        newDiv.appendChild(label);
+
+        const newCanvas = document.createElement("canvas");
+        newCanvas.width = canvas.width;
+        newCanvas.height = canvas.height;
+        newDiv.appendChild(newCanvas);
+
+        const newCtx = newCanvas.getContext("2d");
+        newCtx.putImageData(imageData, 0, 0);
+
+        document.body.appendChild(newDiv);
+      }
+
       function clearCanvas() {
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath(); // Reset path after clearing
       }
 
-      async function predict() {
-        const model = await tf.loadLayersModel("model/model.json");
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const data = tf.browser.fromPixels(imageData, 1);
-        const resized = tf.image.resizeBilinear(data, [28, 28]).toFloat();
+      async function displayTensorImage(tensor) {
+        const newDiv = document.createElement("div");
+        newDiv.style.border = "1px solid black";
+        newDiv.style.display = "inline-block";
+        newDiv.style.margin = "10px";
 
-        const tempCanvas = document.createElement("canvas");
-        tempCanvas.width = 28;
-        tempCanvas.height = 28;
-        const tempCtx = tempCanvas.getContext("2d");
+        const label = document.createElement("p");
+        label.innerText = "Tensor Image";
+        newDiv.appendChild(label);
 
-        // Convert the resized tensor to image data
-        const resizedImageData = new ImageData(28, 28);
-        const resizedArray = await resized.array();
+        const newCanvas = document.createElement("canvas");
+        newCanvas.width = canvas.width;
+        newCanvas.height = canvas.height;
+        newDiv.appendChild(newCanvas);
 
-        for (let i = 0; i < 28; i++) {
-          for (let j = 0; j < 28; j++) {
-            const pixelValue = resizedArray[i][j] * 255;
-            const index = (i * 28 + j) * 4;
-            resizedImageData.data[index] = pixelValue; // Red
-            resizedImageData.data[index + 1] = pixelValue; // Green
-            resizedImageData.data[index + 2] = pixelValue; // Blue
-            resizedImageData.data[index + 3] = 255; // Alpha
+        await tf.browser.toPixels(tensor, newCanvas);
+
+        document.body.appendChild(newDiv);
+      }
+
+      function createTensorFromImageData(imageData, width, height) {
+        const data = imageData.data;
+        const pixelArray = [];
+
+        for (let i = 0; i < height; i++) {
+          const row = [];
+          for (let j = 0; j < width; j++) {
+            const index = (i * width + j) * 4; // RGBA values
+            const value = data[index]; // Use the red channel
+            row.push(value);
           }
+          pixelArray.push(row);
         }
 
-        tempCtx.putImageData(resizedImageData, 0, 0);
-        document.body.appendChild(tempCanvas);
+        console.log("Pixel Array:", pixelArray); // Debugging: log the pixel array
 
-        const normalized = resized.div(255.0).reshape([1, 28 * 28]);
+        // Create a tensor from the 2D array and normalize
+        const tensor = tf
+          .tensor2d(pixelArray, [height, width])
+          .toFloat()
+          .div(255.0);
 
-        console.log("Normalized");
-        normalized.array().then((array) => {
-          console.log(array); // Check normalized values
-        });
+        console.log("Tensor after conversion:", tensor); // Debugging: log the tensor
+        return tensor;
+      }
+
+      async function getImageDataForPrediction() {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        displayImageData(imageData);
+
+        const tensor = tf.browser.fromPixels(imageData, 4).toFloat().div(255.0);
+
+        const alphaChannel = tensor.slice([0, 0, 3], [-1, -1, 1]).squeeze();
+
+        await displayTensorImage(tensor);
+        await displayTensorImage(alphaChannel);
+
+        console.log(alphaChannel);
+
+        const resized = tf.image.resizeBilinear(
+          alphaChannel.expandDims(-1),
+          [28, 28]
+        );
+
+        // Flatten the tensor for model input
+        const normalized = resized.reshape([1, 784]);
+
+        return normalized;
+      }
+
+      async function predict() {
+        const model = await tf.loadLayersModel("model/model.json");
+
+        const normalized = await getImageDataForPrediction();
 
         const predictions = model.predict(normalized);
 
         const scores = predictions.dataSync();
 
-        console.log("Scores: ", scores);
         const labels = Array.from({ length: 10 }, (_, i) => i);
 
         const chartData = labels
