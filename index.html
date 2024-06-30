@@ -99,45 +99,17 @@
         document.body.appendChild(newDiv);
       }
 
-      function createTensorFromImageData(imageData, width, height) {
-        const data = imageData.data;
-        const pixelArray = [];
-
-        for (let i = 0; i < height; i++) {
-          const row = [];
-          for (let j = 0; j < width; j++) {
-            const index = (i * width + j) * 4; // RGBA values
-            const value = data[index]; // Use the red channel
-            row.push(value);
-          }
-          pixelArray.push(row);
-        }
-
-        console.log("Pixel Array:", pixelArray); // Debugging: log the pixel array
-
-        // Create a tensor from the 2D array and normalize
-        const tensor = tf
-          .tensor2d(pixelArray, [height, width])
-          .toFloat()
-          .div(255.0);
-
-        console.log("Tensor after conversion:", tensor); // Debugging: log the tensor
-        return tensor;
-      }
-
       async function getImageDataForPrediction() {
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-        displayImageData(imageData);
+        // displayImageData(imageData);
 
         const tensor = tf.browser.fromPixels(imageData, 4).toFloat().div(255.0);
 
         const alphaChannel = tensor.slice([0, 0, 3], [-1, -1, 1]).squeeze();
 
-        await displayTensorImage(tensor);
-        await displayTensorImage(alphaChannel);
-
-        console.log(alphaChannel);
+        // await displayTensorImage(tensor);
+        // await displayTensorImage(alphaChannel);
 
         const resized = tf.image.resizeBilinear(
           alphaChannel.expandDims(-1),
