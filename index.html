@@ -36,9 +36,9 @@
 
       function draw(event) {
         if (!drawing) return;
-        ctx.lineWidth = 20;
+        ctx.lineWidth = 20; // Adjust for better visibility
         ctx.lineCap = "round";
-        ctx.strokeStyle = "black";
+        ctx.strokeStyle = "black"; // Ensure the brush is black
 
         ctx.lineTo(
           event.clientX - canvas.offsetLeft,
@@ -53,7 +53,8 @@
       }
 
       function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath(); // Reset path after clearing
       }
 
@@ -61,10 +62,43 @@
         const model = await tf.loadLayersModel("model/model.json");
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const data = tf.browser.fromPixels(imageData, 1);
-        const resized = tf.image.resizeBilinear(data, [28, 28]);
+        const resized = tf.image.resizeBilinear(data, [28, 28]).toFloat();
+
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = 28;
+        tempCanvas.height = 28;
+        const tempCtx = tempCanvas.getContext("2d");
+
+        // Convert the resized tensor to image data
+        const resizedImageData = new ImageData(28, 28);
+        const resizedArray = await resized.array();
+
+        for (let i = 0; i < 28; i++) {
+          for (let j = 0; j < 28; j++) {
+            const pixelValue = resizedArray[i][j] * 255;
+            const index = (i * 28 + j) * 4;
+            resizedImageData.data[index] = pixelValue; // Red
+            resizedImageData.data[index + 1] = pixelValue; // Green
+            resizedImageData.data[index + 2] = pixelValue; // Blue
+            resizedImageData.data[index + 3] = 255; // Alpha
+          }
+        }
+
+        tempCtx.putImageData(resizedImageData, 0, 0);
+        document.body.appendChild(tempCanvas);
+
         const normalized = resized.div(255.0).reshape([1, 28 * 28]);
+
+        console.log("Normalized");
+        normalized.array().then((array) => {
+          console.log(array); // Check normalized values
+        });
+
         const predictions = model.predict(normalized);
+
         const scores = predictions.dataSync();
+
+        console.log("Scores: ", scores);
         const labels = Array.from({ length: 10 }, (_, i) => i);
 
         const chartData = labels
