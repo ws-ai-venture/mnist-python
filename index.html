@@ -1,56 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MNIST Digit Predictor</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      canvas {
+        border: 1px solid black;
+        cursor: crosshair;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Draw a Digit</h1>
+    <canvas id="canvas" width="280" height="280"></canvas>
+    <button id="clear">Clear</button>
+    <button id="predict">Predict</button>
+    <p id="result"></p>
+    <canvas id="chart" width="400" height="200"></canvas>
 
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MNIST Draw</title>
-  <link rel="stylesheet" href="css/custom.css">
-</head>
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      const result = document.getElementById("result");
+      const chartCanvas = document.getElementById("chart").getContext("2d");
+      let drawing = false;
 
-<body>
-  <a href="https://bit.ly/mco-mnist-draw"><img class="header" height="100" src="tf.js_mnist.png"></a>
-  <p class="header text">
-    Draw a digit by hand and have it classified in real time, as you draw, by a machine learning model trained against
-    the <a href="https://en.wikipedia.org/wiki/MNIST_database">MNIST</a> dataset.
-    The model used for this page is a convolutional neural network (CNN) built using Keras/TensorFlow on a
-    Google Tensor Processing Unit (TPU). It's explained in depth and is available for you to build for
-    yourself at <a href="https://bit.ly/mco-mnist-lab">bit.ly/mco-mnist-lab</a>.
-    Source code on <a href="https://github.com/marcacohen/mnist-draw">Github</a>.
-  </p>
-  <div class="container">
-    <div class="content">
-      <div id="drawing-space">
-        <div id="model-load" style="height: 336;
-                                    width: 336;
-                                    background-color: #0000000d;
-                                    position: absolute;
-                                    z-index: 1;
-                                    text-align: center;">
-Loading model...
-        </div>
-        <canvas id="canvas" width="336" height="336"></canvas>
-      </div>
-      <div class="instructions panel text">
-        <p>Draw a single digit (0-9) in the empty box.</p>
-        <button class="text" id="clear-canvas" onclick="this.blur()">Clear</button>
-        <div>
-          <svg id="svg-chart"></svg>
-        </div>
-      </div>
-    </div>
-    <canvas id="scaled-canvas" style="display:none" width="28" height="28"></canvas>
-  </div>
-  <div class="footer">
-    <br>
-    Made with <span id="heart">&hearts;</span> by <a href="https://mco.dev">Marc</a>.
-  </div>
+      canvas.addEventListener("mousedown", () => (drawing = true));
+      canvas.addEventListener("mouseup", () => (drawing = false));
+      canvas.addEventListener("mousemove", draw);
+      document.getElementById("clear").addEventListener("click", clearCanvas);
+      document.getElementById("predict").addEventListener("click", predict);
 
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="https://d3js.org/d3.v3.min.js"></script>
-  <script src="js/fabric.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.2.3"> </script>
-  <script src="js/custom.js"></script>
-</body>
+      function draw(event) {
+        if (!drawing) return;
+        ctx.lineWidth = 20;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "black";
+
+        ctx.lineTo(
+          event.clientX - canvas.offsetLeft,
+          event.clientY - canvas.offsetTop
+        );
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(
+          event.clientX - canvas.offsetLeft,
+          event.clientY - canvas.offsetTop
+        );
+      }
+
+      function clearCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath(); // Reset path after clearing
+      }
+
+      async function predict() {
+        const model = await tf.loadLayersModel("model/model.json");
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = tf.browser.fromPixels(imageData, 1);
+        const resized = tf.image.resizeBilinear(data, [28, 28]);
+        const normalized = resized.div(255.0).reshape([1, 28 * 28]);
+        const predictions = model.predict(normalized);
+        const scores = predictions.dataSync();
+        const labels = Array.from({ length: 10 }, (_, i) => i);
+
+        const chartData = labels
+          .map((label, index) => ({
+            label,
+            score: scores[index],
+          }))
+          .sort((a, b) => b.score - a.score);
+
+        new Chart(chartCanvas, {
+          type: "bar",
+          data: {
+            labels: chartData.map((item) => item.label),
+            datasets: [
+              {
+                label: "Prediction Score",
+                data: chartData.map((item) => item.score),
+                backgroundColor: "rgba(0, 123, 255, 0.6)",
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+
+        const predictedLabel = chartData[0].label;
+        result.innerText = `Prediction: ${predictedLabel}`;
+      }
+    </script>
+  </body>
 </html>
